@@ -9,13 +9,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 @SpringBootApplication
-public class KafkaAS400Application {
+public class MyKafkaAS400Application {
 
-    private static final Logger log = LoggerFactory.getLogger(KafkaAS400Application.class);
+    private static final Logger log = LoggerFactory.getLogger(MyKafkaAS400Application.class);
     
 
     public static void main(String[] args) throws IOException {
-        SpringApplication.run(KafkaAS400Application.class, args);
+        SpringApplication.run(MyKafkaAS400Application.class, args);
 
  		log.info("Starting application.......");
 

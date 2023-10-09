@@ -6,7 +6,6 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 import com.gf.kafka_as400.model.A02;
 import com.gf.kafka_as400.model.ZZdPRM;
@@ -72,7 +71,7 @@ public class MyAS400Service {
         parmList[0] = new ProgramParameter(prmtext.toBytes(" READ"), 36);
         AS400Text dattext = new AS400Text(3840);
         parmList[1] = new ProgramParameter(dattext.toBytes(" "), 3840);
-        for (int x = 0; x < 5; x++) {
+        for (int x = 0; x < 10; x++) {
             ProgramCall pgm = new ProgramCall(getAS400(), QSYSObjectPathName.toPath("LIBFC", "A02A", "PGM"), parmList);
 
             try {
