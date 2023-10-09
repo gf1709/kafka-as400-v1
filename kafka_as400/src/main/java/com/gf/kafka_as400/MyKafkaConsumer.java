@@ -16,24 +16,27 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class KConsumer {
-	private static final Logger log = LoggerFactory.getLogger(KConsumer.class);
+public class MyKafkaConsumer {
+	private static final Logger log = LoggerFactory.getLogger(MyKafkaConsumer.class);
 
-	public static void consume() throws IOException { 
-		
-		final String TOPIC = "test_topic";
-		final String username = "OCPtoKafkaUser";
-		final String password = "curt-R9pP@z";
-		final String groupdId = "xg2";
+	public static void consume() throws IOException {
+
+		final String TOPIC = AppConfig.getKafkaTopic();
+		final String username = AppConfig.getKafkaUsername();
+		final String password = AppConfig.getKafkaPassword();
+		final String bootstrapServer = AppConfig.kafkaBootstrapServer();
+		final String groupdId = AppConfig.getKafkaGroupdId();
 
 		Properties props = new Properties();
-		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "fcvlkas1.fc.crtnet:9092");
+		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
 		props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 		props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 		props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupdId);
 		props.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
 		props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
-		props.put(SaslConfigs.SASL_JAAS_CONFIG,	"org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + username + "\" password=\"" + password + "\";");
+		props.put(SaslConfigs.SASL_JAAS_CONFIG,
+				"org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + username
+						+ "\" password=\"" + password + "\";");
 
 		// props.put("auto.offset.reset", "earliest");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
@@ -42,7 +45,7 @@ public class KConsumer {
 
 		try (Consumer<String, String> consumer = new KafkaConsumer<>(props)) {
 			consumer.subscribe(Arrays.asList(TOPIC));
-			for (int i=0; i<2; i++) {
+			for (int i = 0; i < 2; i++) {
 				ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(3000));
 				log.info("Polling...");
 

@@ -26,31 +26,9 @@ import com.ibm.as400.access.RequestNotSupportedException;
 import com.ibm.as400.access.SystemValue;
 
 @Configuration
-public class KAS400Service {
+public class MyAS400Service {
 
-    private static Environment _environment;
-
-    public static void setEnvironment(Environment anEnvironment) {
-        KAS400Service._environment = anEnvironment;
-    }
-
-    private static final Logger log = LoggerFactory.getLogger(KConsumer.class);
-
-    public String getSystem() {
-        return _environment.getProperty("credential.system");
-    }
-
-    public String getSession() {
-        return _environment.getProperty("credential.session");
-    }
-
-    public String getUser() {
-        return _environment.getProperty("credential.user");
-    }
-
-    public String getPassword() {
-        return _environment.getProperty("credential.password");
-    }
+    private static final Logger log = LoggerFactory.getLogger(MyKafkaConsumer.class);
 
     static AS400 _as400 = null;
 
@@ -59,9 +37,9 @@ public class KAS400Service {
         AS400Message[] messageList;
         if (_as400 == null) {
 
-            _as400 = new AS400(getSystem(), getUser(), getPassword());
+            _as400 = new AS400(AppConfig.getAS400SystemName(), AppConfig.getAs400User(), AppConfig.getAS400Password());
             CommandCall ccNewCmd = new CommandCall(_as400);
-            String strCmd = String.format("CALL PGM(ZZCFGADL) PARM('%-10s')", getSession());
+            String strCmd = String.format("CALL PGM(ZZCFGADL) PARM('%-10s')", AppConfig.getAS400Session());
             try {
                 Job cmdJob = ccNewCmd.getServerJob();
                 isSuccess = ccNewCmd.run(strCmd);

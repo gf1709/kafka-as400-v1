@@ -13,6 +13,6 @@ public class StaticContextInitializer {
 
     @PostConstruct
     public void init() {
-        KAS400Service.setEnvironment(_environment);
+        AppConfig.setEnvironment(_environment);
     }
 }
