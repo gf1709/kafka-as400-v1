@@ -1,0 +1,19 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.configuration.runtimes": [        
+        {
+            "name": "JavaSE-1.8",
+            "path": "C:\\Users\\fce458\\AppData\\Roaming\\Phoenix\\Sviluppo\\jdk-1.8",
+            "default": true
+        },
+        {
+            "name": "JavaSE-11",
+            "path": "C:\\Users\\fce458\\AppData\\Roaming\\Phoenix\\Sviluppo\\jdk-11.0.15"
+        },
+        {
+            "name": "JavaSE-17",
+            "path": "C:\\Users\\fce458\\AppData\\Roaming\\Phoenix\\Sviluppo\\jdk-17.0.5"
+        }
+    ]
+}
