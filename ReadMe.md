@@ -1,8 +1,11 @@
 # Copia oggetto su as400
     CPY OBJ('/qntc/10.120.32.179/fccrt/PFC/PFC1/JO/test/kafkaas400.jar') 
-        TOOBJ('/tmp/kafkaas400.jar')   REPLACE(*YES)
+    TOOBJ('/tmp/kafkaas400.jar')   REPLACE(*YES)
     qsh
     java -jar /tmp/kafkaas400.jar
+    oppure 
+    cd  /qntc/10.120.32.179/fccrt/PFC/PFC1/JO/test
+    java -jar kafkaas400.jar
     TELNET RMTSYS('fcvlkac4.fc.crtnet') PORT(9092)    
     TELNET RMTSYS('fcvlkas1.fc.crtnet') PORT(9092)    
 # Istruzioni per usare kafka con docker compose

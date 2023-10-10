@@ -21,7 +21,7 @@ public class MyKafkaProducer {
 		final String TOPIC = AppConfig.getKafkaTopic();
 		final String username = AppConfig.getKafkaUsername();
 		final String password = AppConfig.getKafkaPassword();
-		final String bootstrapServer = AppConfig.kafkaBootstrapServer();
+		final String bootstrapServer = AppConfig.getKafkaBootstrapServer();
 
 		Properties props = new Properties();
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);

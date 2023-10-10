@@ -19,11 +19,14 @@ public class MyKafkaAS400Application {
 
  		log.info("Starting application.......");
 
+        AppConfig.printConfig();
+
 		MyAS400Service service = new MyAS400Service();
 		String ccsid =  service.getCCSID();
 		log.info("ccsid is " + ccsid);
 
-        service.callA02Pgm();
+        //service.callA02Pgm();
+        service.readWriteA02();
 
         log.info("Writing and Reading with Kafka...");
         MyKafkaProducer.produce();

@@ -24,7 +24,7 @@ public class MyKafkaConsumer {
 		final String TOPIC = AppConfig.getKafkaTopic();
 		final String username = AppConfig.getKafkaUsername();
 		final String password = AppConfig.getKafkaPassword();
-		final String bootstrapServer = AppConfig.kafkaBootstrapServer();
+		final String bootstrapServer = AppConfig.getKafkaBootstrapServer();
 		final String groupdId = AppConfig.getKafkaGroupdId();
 
 		Properties props = new Properties();
