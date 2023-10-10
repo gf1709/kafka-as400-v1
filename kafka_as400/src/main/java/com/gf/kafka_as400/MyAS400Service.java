@@ -127,6 +127,21 @@ public class MyAS400Service {
         }
     }
 
+    private static Connection getConnection() throws SQLException
+    {
+        String jdbc="";
+        if (AppConfig.getAS400SystemName().toLowerCase().equals("localhost"))
+        {
+            String jdbcf = "jdbc:as400://%s;";
+            jdbc = String.format(jdbcf, AppConfig.getAS400SystemName());
+        }
+        else
+        {
+            String jdbcf = "jdbc:as400://%s;user=%s;password=%s;";
+            jdbc = String.format(jdbcf, AppConfig.getAS400SystemName(), AppConfig.getAs400User(), AppConfig.getAS400Password());
+        }
+        return DriverManager.getConnection(jdbc);        
+    }
     public void readWriteA02() {
 
         try {
@@ -134,13 +149,13 @@ public class MyAS400Service {
                 Class.forName("com.ibm.as400.access.AS400JDBCDriver");
             } catch (ClassNotFoundException ex) {
                 System.err.println("JDBC Driver Not Found.");
-            }
+            }            
 
-            String jdbcf = "jdbc:as400://%s;user=%s;password=%s;";
-            String jdbc = String.format(jdbcf, AppConfig.getAS400SystemName(), AppConfig.getAs400User(), AppConfig.getAS400Password());
+            log.info(" ");
+            log.info("Lettura via jdbc..............");    
 
             // Apro la connessione
-            Connection conn = DriverManager.getConnection(jdbc);
+            Connection conn = getConnection();
 
             String sql = normalizeSql("SELECT A02COG, A02NOM FROM :SCHEMADT.A02 limit 10"); 
             Statement stmt = conn.createStatement();            
@@ -152,7 +167,6 @@ public class MyAS400Service {
                 if (count > 10)
                     break;
             }
-
             sql  = normalizeSql("INSERT INTO :SCHEMADT.A02 (A02SRC,A02CAG,A02COG,A02NOM,A02DEA,A02COA,A02SES,A02DTN) VALUES (?,?,?,?,?,?,?,?)");
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, "x");
@@ -163,6 +177,8 @@ public class MyAS400Service {
             pstmt.setString(6, " ");
             pstmt.setString(7, "x");
             pstmt.setString(8, "01.01.2021");
+            
+            log.info("Aggiornamenti via jdbc........");    
             int results = pstmt.executeUpdate();
             log.info(String.format("Inserito %d record", results));
 
