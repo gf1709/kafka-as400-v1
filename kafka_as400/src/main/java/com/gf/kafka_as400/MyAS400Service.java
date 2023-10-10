@@ -2,6 +2,12 @@ package com.gf.kafka_as400;
 
 import java.beans.PropertyVetoException;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +22,6 @@ import com.ibm.as400.access.AS400Text;
 import com.ibm.as400.access.CommandCall;
 import com.ibm.as400.access.ErrorCompletingRequestException;
 import com.ibm.as400.access.Job;
-import com.ibm.as400.access.ObjectDescription;
 import com.ibm.as400.access.ObjectDoesNotExistException;
 import com.ibm.as400.access.ProgramCall;
 import com.ibm.as400.access.ProgramParameter;
@@ -25,9 +30,6 @@ import com.ibm.as400.access.Record;
 import com.ibm.as400.access.RequestNotSupportedException;
 import com.ibm.as400.access.SystemValue;
 
-import com.ibm.as400.access.AS400JDBCDriver;
-import java.sql.*;
-
 @Configuration
 public class MyAS400Service {
 
@@ -35,16 +37,15 @@ public class MyAS400Service {
 
     static AS400 _as400 = null;
     static String[] _libraryList;
-    static String   _libUDT;
-    static String   _libUPC;
-    static String   _libUTM;
-    static String   _libMultibanca;
-    static String   _targaCassaAmbiente;
+    static String _libUDT;
+    static String _libUPC;
+    static String _libUTM;
+    static String _libMultibanca;
+    static String _targaCassaAmbiente;
 
     AS400 getAS400() {
         boolean isSuccess;
         AS400Message[] messageList;
-        String[] libs;
         if (_as400 == null) {
 
             _as400 = new AS400(AppConfig.getAS400SystemName(), AppConfig.getAs400User(), AppConfig.getAS400Password());
@@ -53,15 +54,18 @@ public class MyAS400Service {
             try {
                 Job cmdJob = ccNewCmd.getServerJob();
                 isSuccess = ccNewCmd.run(strCmd);
+                if (!isSuccess) {
+                    log.error("Errore in fase di chiamata al programma che imposta le librerie");
+                    _as400 = null;
+                    return _as400;
+                }
                 messageList = ccNewCmd.getMessageList();
                 _libraryList = cmdJob.getUserLibraryList();
                 for (String lib : _libraryList) {
-                    if (lib.trim().endsWith("UDT"))
-                    {
+                    if (lib.trim().endsWith("UDT")) {
                         _libUDT = lib.trim();
                         _targaCassaAmbiente = lib.trim().substring(2, 5);
-                    }
-                    else if (lib.trim().endsWith("UPC"))
+                    } else if (lib.trim().endsWith("UPC"))
                         _libUPC = lib.trim();
                     else if (lib.trim().endsWith("UTM"))
                         _libUTM = lib.trim();
@@ -71,15 +75,15 @@ public class MyAS400Service {
             } catch (AS400SecurityException | ErrorCompletingRequestException | IOException | InterruptedException
                     | PropertyVetoException | ObjectDoesNotExistException e) {
                 e.printStackTrace();
+                _as400 = null;
             }
         }
         return _as400;
     }
 
-    
-  static  String normalizeSql(String sql)
-    {
-        String res = sql.replace(":SCHEMADT", _libUDT).replace(":SCHEMAPC", _libUPC).replace(":SCHEMATM", _libUTM).replace(":SCHEMAMB", _libMultibanca);
+    static String normalizeSql(String sql) {
+        String res = sql.replace(":SCHEMADT", _libUDT).replace(":SCHEMAPC", _libUPC).replace(":SCHEMATM", _libUTM)
+                .replace(":SCHEMAMB", _libMultibanca);
         return res;
     }
 
@@ -127,21 +131,19 @@ public class MyAS400Service {
         }
     }
 
-    private static Connection getConnection() throws SQLException
-    {
-        String jdbc="";
-        if (AppConfig.getAS400SystemName().toLowerCase().equals("localhost"))
-        {
+    private static Connection getConnection() throws SQLException {
+        String jdbc = "";
+        if (AppConfig.getAS400SystemName().toLowerCase().equals("localhost")) {
             String jdbcf = "jdbc:as400://%s;";
             jdbc = String.format(jdbcf, AppConfig.getAS400SystemName());
-        }
-        else
-        {
+        } else {
             String jdbcf = "jdbc:as400://%s;user=%s;password=%s;";
-            jdbc = String.format(jdbcf, AppConfig.getAS400SystemName(), AppConfig.getAs400User(), AppConfig.getAS400Password());
+            jdbc = String.format(jdbcf, AppConfig.getAS400SystemName(), AppConfig.getAs400User(),
+                    AppConfig.getAS400Password());
         }
-        return DriverManager.getConnection(jdbc);        
+        return DriverManager.getConnection(jdbc);
     }
+
     public void readWriteA02() {
 
         try {
@@ -149,25 +151,27 @@ public class MyAS400Service {
                 Class.forName("com.ibm.as400.access.AS400JDBCDriver");
             } catch (ClassNotFoundException ex) {
                 System.err.println("JDBC Driver Not Found.");
-            }            
+            }
 
             log.info(" ");
-            log.info("Lettura via jdbc..............");    
+            log.info("Lettura via jdbc..............");
 
             // Apro la connessione
             Connection conn = getConnection();
 
-            String sql = normalizeSql("SELECT A02COG, A02NOM FROM :SCHEMADT.A02 limit 10"); 
-            Statement stmt = conn.createStatement();            
+            String sql = normalizeSql("SELECT A02COG, A02NOM FROM :SCHEMADT.A02 limit 10");
+            Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             int count = 0;
             while (rs.next()) {
-                System.out.println("Record nr........ " + count +"...:"  + rs.getString(1).trim() + ", " + rs.getString(2).trim());
+                System.out.println(
+                        "Record nr........ " + count + "...:" + rs.getString(1).trim() + ", " + rs.getString(2).trim());
                 count++;
                 if (count > 10)
                     break;
             }
-            sql  = normalizeSql("INSERT INTO :SCHEMADT.A02 (A02SRC,A02CAG,A02COG,A02NOM,A02DEA,A02COA,A02SES,A02DTN) VALUES (?,?,?,?,?,?,?,?)");
+            sql = normalizeSql(
+                    "INSERT INTO :SCHEMADT.A02 (A02SRC,A02CAG,A02COG,A02NOM,A02DEA,A02COA,A02SES,A02DTN) VALUES (?,?,?,?,?,?,?,?)");
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, "x");
             pstmt.setString(2, "123456");
@@ -177,17 +181,16 @@ public class MyAS400Service {
             pstmt.setString(6, " ");
             pstmt.setString(7, "x");
             pstmt.setString(8, "01.01.2021");
-            
-            log.info("Aggiornamenti via jdbc........");    
+
+            log.info("Aggiornamenti via jdbc........");
             int results = pstmt.executeUpdate();
             log.info(String.format("Inserito %d record", results));
 
-            sql  = normalizeSql("DELETE FROM :SCHEMADT.A02 WHERE A02SRC=?");            
+            sql = normalizeSql("DELETE FROM :SCHEMADT.A02 WHERE A02SRC=?");
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, "x");
             results = pstmt.executeUpdate();
             log.info(String.format("Cancellati %d records", results));
-            
 
         } catch (SQLException ex) {
             log.error("Errore in fase di connessione o esecuzione al db", ex);
